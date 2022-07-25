@@ -29,7 +29,11 @@ class Video(WaitKeyMixin):
                 target_index = 1
             self._cached_index = target_index
 
-            self.cap.set(cv2.CAP_PROP_POS_FRAMES, target_index)
+            if self.cap.get(cv2.CAP_PROP_POS_FRAMES) + 1 != target_index:
+                # manually setting the position is much slower than going to the next frame
+                # only do this when necessary
+                self.cap.set(cv2.CAP_PROP_POS_FRAMES, target_index)
+
             ret, self._frame_image = self.cap.read()
             self._raw_image = self._frame_image
             current_shape = self._frame_image.shape

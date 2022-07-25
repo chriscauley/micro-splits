@@ -15,22 +15,16 @@ def div0( a, b, fill=0 ):
         c[ ~ np.isfinite( c )] = fill
         return c
 
-def compare26(img1, img2):
-    w = 18
-    h = 16
-    H, W = img1.shape[:2]
-    for ix in range(int(W/w)):
-        for iy in range(int(H/h)):
-            pass
-
-
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        if isinstance(obj, np.integer):
-            return int(obj)
-        return json.JSONEncoder.default(self, obj)
-
 def moving_average(x, w=10):
     return np.convolve(x, np.ones(w), 'valid') / w
+
+def show_plot(datasets, title='plot'):
+    for dataset in datasets:
+        plt.plot(dataset)
+    with io.BytesIO() as buff:
+        fig.savefig(buff, format='raw')
+        buff.seek(0)
+        data = np.frombuffer(buff.getvalue(), dtype=np.uint8)
+    w, h = fig.canvas.get_width_height()
+    plt.clf()
+    cv2.imshow(title, urcv.transform.scale(data.reshape((int(h), int(w), -1)), 2))

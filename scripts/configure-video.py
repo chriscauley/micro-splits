@@ -7,17 +7,15 @@ import urcv
 from models import Video
 
 
+def watch_func(video):
+    cv2.imshow('hud', video.get_hud_content())
+    cv2.imshow('game', video.get_game_content())
+
+
 def main(video_path):
     video = Video(video_path)
-    while True:
 
-        if not video.seeking:
-            cv2.imshow('hud', video.get_hud_content())
-            cv2.imshow('game', video.get_game_content())
-            game = video.get_game_content()
-        pressed = video.wait_key()
-        if pressed == 'q':
-            break
+    video.watch(watch_func)
 
 if __name__ == "__main__":
     typer.run(main)

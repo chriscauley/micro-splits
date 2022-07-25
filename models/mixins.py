@@ -70,6 +70,13 @@ class WaitKeyMixin:
             return key
         self._index = self._index % self.get_max_index()
 
-
     def get_max_index(self):
         raise NotImplementedError()
+
+    def watch(self, watch_func):
+        while True:
+            if not self.seeking:
+                watch_func(self)
+            pressed = self.wait_key()
+            if pressed == 'q':
+                break
