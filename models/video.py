@@ -41,7 +41,7 @@ class Video(WaitKeyMixin):
                 )
             if not ret:
                 raise NotImplementedError("Video is not loaded")
-        self._index = target_index
+        self._index = int(target_index)
         return self._frame_image
 
     def get_hud_content(self):

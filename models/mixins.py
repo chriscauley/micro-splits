@@ -17,7 +17,7 @@ class WaitKeyMixin:
         self.goto = self.goto % self.get_max_index()
 
     @property
-    def busy(self):
+    def seeking(self):
         return self.goto != None
 
     def wait_key(self):
