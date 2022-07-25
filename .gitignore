@@ -1,0 +1,7 @@
+# python
+.venv
+__pycache__
+
+# cache and data
+.data
+.media
