@@ -1,6 +1,10 @@
 import cv2
+import io
 import json
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
 import numpy as np
+import urcv
 
 def div0( a, b, fill=0 ):
     """ a / b, divide by 0 -> `fill`
@@ -18,7 +22,11 @@ def div0( a, b, fill=0 ):
 def moving_average(x, w=10):
     return np.convolve(x, np.ones(w), 'valid') / w
 
+figure(figsize=(8, 6), dpi=80)
+fig, ax = plt.subplots()
+
 def show_plot(datasets, title='plot'):
+
     for dataset in datasets:
         plt.plot(dataset)
     with io.BytesIO() as buff:
