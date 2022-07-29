@@ -73,7 +73,7 @@ class WaitKeyMixin:
     def get_max_index(self):
         raise NotImplementedError()
 
-    def watch(self, watch_func, pressed_func):
+    def watch(self, watch_func, pressed_func=None):
         while True:
             if not self.seeking:
                 watch_func(self)
