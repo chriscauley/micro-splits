@@ -41,8 +41,10 @@ def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
     cap = video.cap
     while True:
         if video._index % 1000 == 0:
-            print(video._index, '/', video.get_max_index(), int(time.time() - start))
+            print(video._index, '/', video.get_max_index(), f'{round(time.time() - start, 2)}s')
         if video._index >= video.get_max_index():
+            break
+        if video.get_frame() is None:
             break
         hud = video.get_hud_content()
         game = video.get_game_content()

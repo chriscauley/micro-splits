@@ -36,6 +36,8 @@ class Video(WaitKeyMixin):
 
             ret, self._frame_image = self.cap.read()
             self._raw_image = self._frame_image
+            if self._frame_image is None:
+                return
             current_shape = self._frame_image.shape
             if current_shape[:2] != GAME_SHAPE:
                 self._frame_image = cv2.resize(
