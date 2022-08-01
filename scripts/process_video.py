@@ -48,7 +48,6 @@ def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
             break
         hud = video.get_hud_content()
         game = video.get_game_content()
-        video._index += 1
 
         summed_game, delta, summed_delta = process(game, last_game)
 
@@ -56,6 +55,7 @@ def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
         sums.append(np.sum(summed_game))
         deltas.append(np.sum(summed_delta))
         last_game = game
+        video._index += 1
 
 
     data = get_data(video_path)

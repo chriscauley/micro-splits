@@ -27,9 +27,9 @@ def watch_func(video):
     percent = round(100 * index / max_index, 2)
 
     i_start = max(0, index - PLOT_LEN)
-    deltas = video.data['deltas'][i_start:index]
-    sums = video.data['sums'][i_start:index]
-    means = video.data['means'][i_start:index]
+    deltas = video.data['deltas'][i_start:index+1]
+    sums = video.data['sums'][i_start:index+1]
+    means = video.data['means'][i_start:index+1]
     urcv.text.write(game, f'{deltas[-1],sums[-1]}')
     urcv.text.write(game, f'{percent}%', pos="bottom right")
 
