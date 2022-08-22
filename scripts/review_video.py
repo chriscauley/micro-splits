@@ -39,13 +39,12 @@ def watch_func(video):
     summed_game = np.multiply(255, summed_game.astype(np.uint8))
     cv2.imshow('sum,delta', urcv.transform.scale(np.vstack([summed_game,summed_delta]), 32))
 
-    datasets = [sums, deltas, means]
+    datasets = [means, sums, deltas]
     datasets = [d[-PLOT_LEN:] for d in datasets]
-    show_plot(datasets)
+    show_plot(datasets, x_max=index, labels=["means", "sums", "deltas"])
 
 def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
     video = Video(video_path)
-    video.data = get_data(video_path)
     video.watch(watch_func)
 
 if __name__ == "__main__":

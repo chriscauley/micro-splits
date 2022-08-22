@@ -30,14 +30,30 @@ def process(game, last_game):
     summed_delta = sumcells(delta)
     return summed_game, delta, summed_delta
 
+def detect_item(video, means, items):
+    index = video._index
+    if index < video.data['start']:
+        # video hasn't started yet
+        return False
+
+    if items and index - items[-1] < 300:
+        # last item was too recent
+        return False
+    if np.std(means[index - 10:index]) < 0.01 and video.data['sums'][index] > 20:
+        items.append(index)
+        return True
+
 def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
     last_game = None
     means = []
     sums = []
     deltas = []
+    items = []
     start = time.time()
 
     video = Video(video_path)
+    if not 'start' in video.data:
+        raise ValueError("no start detected, run configure")
     cap = video.cap
     while True:
         if video._index % 1000 == 0:
@@ -54,14 +70,23 @@ def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
         means.append(game.mean())
         sums.append(np.sum(summed_game))
         deltas.append(np.sum(summed_delta))
+        if detect_item(video, means, items):
+            pass
+            # item_frames.append(game2)
+            # cv2.imshow('stack', urcv.stack.many(item_frames))
+            # urcv.wait_key()
+
         last_game = game
         video._index += 1
+
 
 
     data = get_data(video_path)
     data['sums'] = sums
     data['means'] = means
     data['deltas'] = deltas
+    data['items'] = items
+    print(len(items), len(data['manual_items']))
 
 if __name__ == "__main__":
     typer.run(main)

@@ -25,10 +25,23 @@ def moving_average(x, w=10):
 figure(figsize=(8, 6), dpi=80)
 fig, ax = plt.subplots()
 
-def show_plot(datasets, title='plot'):
+def show_plot(datasets, title='plot', cap=0, x_max=None, labels=None):
+    if cap:
+        datasets = [
+            [min(i, cap) for i in dataset]
+            for dataset in datasets
+        ]
 
-    for dataset in datasets:
-        plt.plot(dataset)
+    xs = range(len(datasets[0]))
+    if x_max is not None:
+        xs = range(x_max - len(datasets[0]), x_max)
+    for i, dataset in enumerate(datasets):
+        label = None
+        if labels:
+            label = labels[i]
+        plt.plot(xs, dataset, label=label)
+    if labels:
+        plt.legend()
     with io.BytesIO() as buff:
         fig.savefig(buff, format='raw')
         buff.seek(0)
