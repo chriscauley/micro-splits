@@ -1,6 +1,8 @@
 import cv2
+import urcv
 
-from .mixins import WaitKeyMixin
+from .mixins import WaitKeyMixin, OutOfBoundsError
+from .get_data import get_data
 
 GAME_WIDTH = 300
 GAME_HEIGHT = 224
@@ -13,6 +15,7 @@ class Video(WaitKeyMixin):
     """
     def __init__(self, file_path):
         super().__init__()
+        self.data = get_data(file_path)
         self.file_path = file_path
         self.cap = cv2.VideoCapture(file_path)
         self._index = -1 # foces next line to load frame
@@ -37,7 +40,16 @@ class Video(WaitKeyMixin):
             ret, self._frame_image = self.cap.read()
             self._raw_image = self._frame_image
             if self._frame_image is None:
-                return
+                now = self._index
+                end = self.get_max_index()
+                print(f"The video has ended on frame {now}/{end}")
+                raise OutOfBoundsError("The video has ended on frame {now}/{end}")
+
+            # game bounds remove the stream content, etc
+            game_bounds = self.data.get('game_bounds')
+            if game_bounds:
+                self._frame_image = urcv.transform.crop(self._frame_image, game_bounds)
+
             current_shape = self._frame_image.shape
             if current_shape[:2] != GAME_SHAPE:
                 self._frame_image = cv2.resize(

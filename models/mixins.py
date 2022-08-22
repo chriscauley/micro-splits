@@ -4,6 +4,10 @@ import time
 import urcv
 
 
+class OutOfBoundsError(Exception):
+    pass
+
+
 class WaitKeyMixin:
     def __init__(self, *args, **kwargs):
         self._index = 0
@@ -76,9 +80,12 @@ class WaitKeyMixin:
     def watch(self, watch_func, pressed_func=None):
         while True:
             if not self.seeking:
-                watch_func(self)
+                try:
+                    watch_func(self)
+                except OutOfBoundsError:
+                    break
             pressed = self.wait_key()
             if pressed == 'q':
                 break
             if pressed and pressed_func:
-                pressed_func(pressed)
+                pressed_func(self, pressed)
