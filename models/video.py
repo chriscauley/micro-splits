@@ -6,7 +6,7 @@ from .get_data import get_data
 
 GAME_WIDTH = 300
 GAME_HEIGHT = 224
-GAME_SHAPE = (GAME_WIDTH, GAME_HEIGHT)
+GAME_SHAPE = (GAME_HEIGHT, GAME_WIDTH)
 HUD_SPLIT = 31
 
 class Video(WaitKeyMixin):
@@ -18,24 +18,26 @@ class Video(WaitKeyMixin):
         self.data = get_data(file_path)
         self.file_path = file_path
         self.cap = cv2.VideoCapture(file_path)
-        self._index = -1 # foces next line to load frame
         self._cached_index = None
+        self._index = -1 # foces next line to load frame
         self.get_frame(0)
 
     def get_frame(self, target_index=None, safe=False):
         if target_index == None:
             target_index = self._index
-        if self._cached_index != target_index:
-            if target_index == 0:
+        self._index = int(target_index)
+        if self._cached_index != self._index:
+            if self._index == 0:
                 # opencv is 1 indexed, so we'll just return the first frame
                 # this means the first and second frames are going to be the same
-                target_index = 1
-            self._cached_index = target_index
+                self._index = 1
+            self._cached_index = self._index
 
-            if self.cap.get(cv2.CAP_PROP_POS_FRAMES) + 1 != target_index:
+            if self.cap.get(cv2.CAP_PROP_POS_FRAMES) + 1 != self._index:
                 # manually setting the position is much slower than going to the next frame
                 # only do this when necessary
-                self.cap.set(cv2.CAP_PROP_POS_FRAMES, target_index)
+                print('seeking')
+                self.cap.set(cv2.CAP_PROP_POS_FRAMES, self._index)
 
             ret, self._frame_image = self.cap.read()
             self._raw_image = self._frame_image
@@ -44,6 +46,7 @@ class Video(WaitKeyMixin):
                 end = self.get_max_index()
                 print(f"The video has ended on frame {now}/{end}")
                 if safe:
+                    self.data['last_index'] = self._index -1
                     return None
                 raise OutOfBoundsError(f"The video has ended on frame {now}/{end}")
 
@@ -56,12 +59,11 @@ class Video(WaitKeyMixin):
             if current_shape[:2] != GAME_SHAPE:
                 self._frame_image = cv2.resize(
                     self._frame_image,
-                    GAME_SHAPE,
+                    GAME_SHAPE[::-1],
                     interpolation=cv2.INTER_NEAREST
                 )
             if not ret:
                 raise NotImplementedError("Video is not loaded")
-        self._index = int(target_index)
         return self._frame_image
 
     def get_hud_content(self):
@@ -74,7 +76,7 @@ class Video(WaitKeyMixin):
         return self.cap.get(cv2.CAP_PROP_POS_MSEC)
 
     def get_max_index(self):
-        return self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        return self.data.get('last_index') or self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
     def increase_goto_by(self, amount):
         if amount < 0:

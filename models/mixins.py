@@ -89,3 +89,19 @@ class WaitKeyMixin:
                 break
             if pressed and pressed_func:
                 pressed_func(self, pressed)
+
+    def each_frame(self, each_func):
+        start = time.time()
+        while True:
+            if self._index % 1000 == 0:
+                print(self._index, '/', self.get_max_index(), f'{round(time.time() - start, 2)}s')
+            if self._index >= self.get_max_index():
+                break
+            if self.get_frame(safe=True) is None:
+                break
+            try:
+                each_func()
+            except Exception as e:
+                print(f"failed at {self._index} / {self.get_max_index()}")
+                raise e
+            self._index += 1
