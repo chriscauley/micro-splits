@@ -22,7 +22,7 @@ class Video(WaitKeyMixin):
         self._cached_index = None
         self.get_frame(0)
 
-    def get_frame(self, target_index=None):
+    def get_frame(self, target_index=None, safe=False):
         if target_index == None:
             target_index = self._index
         if self._cached_index != target_index:
@@ -43,7 +43,9 @@ class Video(WaitKeyMixin):
                 now = self._index
                 end = self.get_max_index()
                 print(f"The video has ended on frame {now}/{end}")
-                raise OutOfBoundsError("The video has ended on frame {now}/{end}")
+                if safe:
+                    return None
+                raise OutOfBoundsError(f"The video has ended on frame {now}/{end}")
 
             # game bounds remove the stream content, etc
             game_bounds = self.data.get('game_bounds')

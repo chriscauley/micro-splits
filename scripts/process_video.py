@@ -6,7 +6,7 @@ import time
 import typer
 import urcv
 
-from models import Video, get_data
+from models import Matcher, Video
 
 def sumcells(img, size=16):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -36,11 +36,10 @@ def detect_item(video, means, items):
         # video hasn't started yet
         return False
 
-    if items and index - items[-1] < 300:
+    if index - video._last_item < 300:
         # last item was too recent
         return False
-    if np.std(means[index - 10:index]) < 0.01 and video.data['sums'][index] > 20:
-        items.append(index)
+    if np.std(means[index - 10:index]) < 0.005 and video.data['sums'][index] > 20:
         return True
 
 def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
@@ -52,15 +51,18 @@ def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
     start = time.time()
 
     video = Video(video_path)
-    if not 'start' in video.data:
-        raise ValueError("no start detected, run configure")
+    false_items = video.data.get('false_items', [])[:]
+    video._last_item = 0
+    if 'start' not in video.data or 'world' not in video.data:
+        raise ValueError("no start+world detected, run configure")
+    matcher = Matcher(video.data['world'])
     cap = video.cap
     while True:
         if video._index % 1000 == 0:
             print(video._index, '/', video.get_max_index(), f'{round(time.time() - start, 2)}s')
         if video._index >= video.get_max_index():
             break
-        if video.get_frame() is None:
+        if video.get_frame(safe=True) is None:
             break
         hud = video.get_hud_content()
         game = video.get_game_content()
@@ -70,23 +72,27 @@ def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
         means.append(game.mean())
         sums.append(np.sum(summed_game))
         deltas.append(np.sum(summed_delta))
-        if detect_item(video, means, items):
-            pass
-            # item_frames.append(game2)
-            # cv2.imshow('stack', urcv.stack.many(item_frames))
-            # urcv.wait_key()
+        if detect_item(video, means, items) and video._index not in false_items:
+            matched_item = matcher.match_item(game)
+            if not matched_item:
+                matched_item = matcher.add_item(game)
+            if matched_item:
+                items.append(matched_item)
+            if matched_item:
+                items.append([video._index, matched_item])
+            else:
+                false_items.append(video._index)
+            video._last_item = video._index
 
         last_game = game
         video._index += 1
 
 
 
-    data = get_data(video_path)
-    data['sums'] = sums
-    data['means'] = means
-    data['deltas'] = deltas
-    data['items'] = items
-    print(len(items), len(data['manual_items']))
+    video.data['sums'] = sums
+    video.data['means'] = means
+    video.data['deltas'] = deltas
+
 
 if __name__ == "__main__":
     typer.run(main)

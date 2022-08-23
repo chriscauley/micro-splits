@@ -63,7 +63,8 @@ def pressed_func(video, pressed):
 
 def main(video_path):
     video = Video(video_path)
-    video.data = get_data(video_path)
+    if 'world' not in video.data:
+        video.data['world'] = input('enter world slug:')
     video.watch(watch_func, pressed_func)
 
 if __name__ == "__main__":
