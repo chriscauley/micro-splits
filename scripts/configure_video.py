@@ -47,7 +47,7 @@ def mark_index(video, list_name):
 def pressed_func(video, pressed):
     if pressed in ["?", "h"]:
         print("help")
-    elif pressed == 'c':
+    elif pressed == 'b':
         video.data['game_bounds'] = urcv.input.get_exact_roi(
             video._raw_image,
             name='Select crop of game area',
@@ -61,11 +61,11 @@ def pressed_func(video, pressed):
     else:
         print('pressed', pressed)
 
-def main(video_path):
+def configure_video(video_path):
     video = Video(video_path)
     if 'world' not in video.data:
         video.data['world'] = input('enter world slug:')
     video.watch(watch_func, pressed_func)
 
 if __name__ == "__main__":
-    typer.run(main)
+    typer.run(configure_video)

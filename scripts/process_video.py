@@ -7,6 +7,8 @@ import typer
 import urcv
 
 import args
+from configure_video import configure_video
+from detect_items import detect_items
 from models import Matcher, Video
 
 def sumcells(img, size=16):
@@ -33,6 +35,13 @@ def process(game, last_game):
 
 def main(video_path=args.video_path):
     video = Video(video_path)
+
+    while 'start' not in video.data or 'world' not in video.data:
+        print("Video not configured. Please specify (s)tart, game (b)ounds, and specify world.")
+        configure_video(video_path)
+        video = Video(video_path)
+        cv2.destroyAllWindows()
+
     video._last_item = 0
     video._last_game = None
     means = []
@@ -40,9 +49,6 @@ def main(video_path=args.video_path):
     deltas = []
 
     start = time.time()
-
-    if 'start' not in video.data or 'world' not in video.data:
-        raise ValueError("no start+world detected, run configure")
     matcher = Matcher(video.data['world'])
     cap = video.cap
     def each_func():
@@ -62,6 +68,7 @@ def main(video_path=args.video_path):
     video.data['sums'] = sums
     video.data['means'] = means
     video.data['deltas'] = deltas
+    detect_items(video_path)
 
 if __name__ == "__main__":
     typer.run(main)

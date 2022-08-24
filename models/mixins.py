@@ -93,7 +93,7 @@ class WaitKeyMixin:
     def each_frame(self, each_func):
         start = time.time()
         while True:
-            if self._index % 1000 == 0:
+            if self._index % 10000 == 0:
                 print(self._index, '/', self.get_max_index(), f'{round(time.time() - start, 2)}s')
             if self._index >= self.get_max_index():
                 break
