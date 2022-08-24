@@ -59,7 +59,7 @@ def save_item_frames(video, items, item_frames):
         **get_icons('custom-items', _cvt=cv2.COLOR_BGRA2BGR, scale=2),
     }
     video_name = video.file_path.split('/')[-1]
-    root = Path(f'.data/{video_name}/false_items/')
+    root = Path(f'.data/{video_name}/')
     root.mkdir(exist_ok=True, parents=True)
     marked_frames = []
     for (index, item), frame in zip(items, item_frames):
