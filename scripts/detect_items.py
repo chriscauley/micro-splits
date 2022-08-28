@@ -12,14 +12,14 @@ from models import Matcher, Video
 from maptroid.icons import get_icons
 
 
-def detect_item(video, items):
+def check_current_frame(video, items):
     window = 20
     index = video._index
     if index < video.data['start']:
         # video hasn't started yet
         return False
 
-    if index - video._last_item < 200:
+    if index < video._next_item_check:
         # last item was too recent
         return False
 
@@ -29,7 +29,7 @@ def detect_item(video, items):
     std_means = np.std(video.data['means'][index - window:index])
     sums = video.data['sums'][index]
     deltas = video.data['deltas'][index]
-    if std_means < 0.005 and sums > 20 and deltas < 20:
+    if std_means < 0.1 and sums > 20 and deltas < 20:
         return index - window
 
 
@@ -64,7 +64,8 @@ def save_item_frames(video, items, item_frames):
     marked_frames = []
     for (index, item), frame in zip(items, item_frames):
         frame = frame.copy()
-        urcv.draw.paste(frame, icons[item], 50, 80)
+        icon = icons.get(item, icons['beam-combo'])
+        urcv.draw.paste(frame, icon, 50, 80)
         urcv.text.write(frame, f'{index} {item}')
         marked_frames.append(frame)
     cv2.imwrite(str(root / 'all_items.png'), urcv.stack.many(marked_frames))
@@ -72,7 +73,7 @@ def save_item_frames(video, items, item_frames):
 
 def detect_items(video_path, add_items=False):
     video = Video(video_path)
-    video._last_item = 0
+    video._next_item_check = 0
     video.matcher = Matcher(video.data['world'])
 
     items = []
@@ -83,7 +84,7 @@ def detect_items(video_path, add_items=False):
     def each_func():
         index = video._index
 
-        item_index = detect_item(video, items)
+        item_index = check_current_frame(video, items)
         if item_index:
             game = video.get_game_content()
             matched_item = video.matcher.match_item(game)
@@ -92,10 +93,11 @@ def detect_items(video_path, add_items=False):
             if matched_item:
                 items.append([item_index, matched_item])
                 item_frames.append(video.get_game_content())
+                video._next_item_check = index + 200
             else:
                 false_items.append(index)
                 false_frames.append(video.get_game_content())
-            video._last_item = index
+                video._next_item_check = index + 10
 
     video.each_frame(each_func)
     video.data['items'] = items

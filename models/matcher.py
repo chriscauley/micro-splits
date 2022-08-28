@@ -52,7 +52,7 @@ class Matcher:
             template = self.cache[f'item__{item_name}']
             result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
             _, val, _, loc = cv2.minMaxLoc(result)
-            if val > 0.95 and val > max_val:
+            if val > 0.90 and val > max_val:
                 max_val = val
                 max_loc = loc
                 max_item = item_name

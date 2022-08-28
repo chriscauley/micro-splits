@@ -55,7 +55,7 @@ def get_inventory_image(items, cols=2, names=[]):
         x = (index % cols) * (per_icon + _buffer)
         y = (index // cols) * (per_icon + _buffer)
         _icons = icons if count else gray_icons
-        urcv.draw.paste(image, _icons[item], x, y)
+        urcv.draw.paste(image, _icons.get(item, icons['beam-combo']), x, y)
         if count > 1:
             counts.append([x, y, count])
     image = urcv.transform.scale(image, scale)
