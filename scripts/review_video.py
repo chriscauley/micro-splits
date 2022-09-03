@@ -6,7 +6,7 @@ import typer
 import urcv
 
 from scripts.process_video import process
-from models import Video, get_data
+from models import Video
 from models.inventory import get_video_inventory_image
 from utils import show_plot
 

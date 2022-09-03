@@ -1,8 +1,10 @@
 import cv2
+import functools
 import urcv
 
+from .matcher import Matcher
 from .mixins import WaitKeyMixin, OutOfBoundsError
-from .get_data import get_data
+from .data import JsonCache
 
 GAME_WIDTH = 300
 GAME_HEIGHT = 224
@@ -15,12 +17,24 @@ class Video(WaitKeyMixin):
     """
     def __init__(self, file_path):
         super().__init__()
-        self.data = get_data(file_path)
+        fname = file_path.split("/")[-1]
+        self.data_dir = f'.data/{fname}/'
+        self.data = JsonCache(self.data_dir + 'data.json')
         self.file_path = file_path
         self.cap = cv2.VideoCapture(file_path)
+        self.data.update({
+            'video_name': fname,
+            'video_path': file_path,
+            'fps': self.cap.get(cv2.CAP_PROP_FPS),
+        })
+        self.data._save()
         self._cached_index = None
         self._index = -1 # foces next line to load frame
         self.get_frame(0)
+
+    @functools.cached_property
+    def matcher(self):
+        return Matcher(self.data['world'])
 
     def get_frame(self, target_index=None, safe=False):
         if target_index == None:

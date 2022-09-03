@@ -1,10 +1,12 @@
 import cv2
+import numpy as np
 from pathlib import Path
 from unrest.utils import JsonCache
 import urcv
 import tkinter as tk
 from tkinter import simpledialog
 
+from game.ypx import hash_start
 
 class EmptyTextError(Exception):
     pass
@@ -21,10 +23,12 @@ class Matcher:
 
         self._cropped = self._dir / 'cropped'
         self._cropped.mkdir(exist_ok=True)
+        self.start_hash = None
 
         self.data = JsonCache(self._dir / 'data.json', {
             'item': {},
             'ui': {},
+            'coords': {},
         })
         self.cache = {}
         for type_ in ['item', 'ui']:
@@ -86,3 +90,29 @@ class Matcher:
             exit()
         self.data._save()
         return item_name
+
+    def get_coords(self, key, image):
+        if slug not in self.data['coords']:
+            self.data['coords'][key] = urcv.input.get_exact_roi(
+                lambda: self.grab(),
+                f"Select coords for {key}",
+            )
+            self.data._save()
+        return self.data['coords'][key]
+
+    def save_start(self, image):
+        path = f'{self._dir}/start.png'
+        self.data['start'] = path
+        cv2.imwrite(path, image)
+
+    def detect_start(self, image):
+        if self.start_hash is None:
+            self.start_hash = hash_start(cv2.imread(self.data['start']))
+        _hash = hash_start(image)
+        value = np.sum(
+            cv2.subtract(_hash, self.start_hash) +
+            cv2.subtract(self.start_hash, _hash)
+        )
+        if value < 1000:
+            # value is usually like 400, but got to make sure it isn't zero so it's truthy
+            return value or 1

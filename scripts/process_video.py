@@ -1,6 +1,7 @@
 import _setup
 import cv2
 import numpy as np
+import os
 import sys
 import time
 import typer
@@ -8,7 +9,7 @@ import urcv
 
 import args
 from configure_video import configure_video
-from detect_items import detect_items
+import detect_items
 from models import Matcher, Video
 
 def sumcells(img, size=16):
@@ -33,22 +34,13 @@ def process(game, last_game):
     summed_delta = sumcells(delta)
     return summed_game, delta, summed_delta
 
-def main(video_path=args.video_path):
-    video = Video(video_path)
-
-    while 'start' not in video.data or 'world' not in video.data:
-        print("Video not configured. Please specify (s)tart, game (b)ounds, and specify world.")
-        configure_video(video_path)
-        video = Video(video_path)
-        cv2.destroyAllWindows()
-
+def process_video(video):
     video._last_item = 0
     video._last_game = None
     means = []
     sums = []
     deltas = []
 
-    start = time.time()
     matcher = Matcher(video.data['world'])
     cap = video.cap
     def each_func():
@@ -56,7 +48,7 @@ def main(video_path=args.video_path):
         game = video.get_game_content()
         index = video._index
 
-        summed_game, delta, summed_delta = process(game, video._last_game)
+        summed_game, delta, summed_delta = process(game.copy(), video._last_game)
 
         means.append(game.mean())
         sums.append(np.sum(summed_game))
@@ -68,7 +60,24 @@ def main(video_path=args.video_path):
     video.data['sums'] = sums
     video.data['means'] = means
     video.data['deltas'] = deltas
-    detect_items(video_path)
+
+def main(video_path=args.video_path):
+    video_name = video_path.split('/')[-1]
+    video = Video(video_path)
+
+    while 'start' not in video.data or 'world' not in video.data:
+        print("Video not configured. Please specify (s)tart, game (b)ounds, and specify world.")
+        configure_video(video_path)
+        cv2.destroyAllWindows()
+
+    if not video.data.get('deltas') or True:
+        print('processing', video_name)
+        video = Video(video_path) # rerfresh data
+        process_video(video)
+
+    if not video.data.get('items'):
+        video = Video(video_path) # rerfresh data
+        detect_items.main(video_path)
 
 if __name__ == "__main__":
     typer.run(main)

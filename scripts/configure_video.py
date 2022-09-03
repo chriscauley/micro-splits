@@ -3,10 +3,8 @@ import cv2
 import sys
 import typer
 import urcv
-from unrest.utils import JsonCache
 
-from models import Video, get_data
-
+from models import Video, Matcher
 
 def show(name, image, scale=2, text=None):
     canvas = urcv.transform.scale(image, scale)
@@ -31,7 +29,12 @@ def watch_func(video):
     if video.data.get('touched_items'):
         delta = get_delta(video._index, video.data['touched_items'])
         game_text += f't:{delta}'
-    show('game', video.get_game_content(), text=game_text)
+
+    game = video.get_game_content()
+    if video.matcher.detect_start(game):
+        video.data['start'] = min(video.data.get('start', 1e6), video._index)
+        game_text += f'start! {video.data["start"]}'
+    show('game', game, text=game_text)
 
 def mark_index(video, list_name):
     index = video._index
@@ -54,6 +57,11 @@ def pressed_func(video, pressed):
         )
     elif pressed == 's':
         video.data['start'] = video._index
+        if not 'start' in video.matcher.data:
+            video.matcher.save_start(video.get_game_content())
+            print('saved start for world ' + video.data['world'])
+    elif pressed == 'e':
+        video.data['end'] = video._index
     elif pressed == 'i':
         mark_index(video, 'manual_items')
     elif pressed == 't':
@@ -63,8 +71,10 @@ def pressed_func(video, pressed):
 
 def configure_video(video_path):
     video = Video(video_path)
+    print('configuring', video_path)
     if 'world' not in video.data:
         video.data['world'] = input('enter world slug:')
+    video.matcher = Matcher(video.data['world'])
     video.watch(watch_func, pressed_func)
 
 if __name__ == "__main__":

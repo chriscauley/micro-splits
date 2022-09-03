@@ -115,5 +115,7 @@
       14
     ]
   },
-  "ui": {}
+  "ui": {},
+  "coords": {},
+  "start": "templates/ypx/start.png"
 }
