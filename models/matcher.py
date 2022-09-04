@@ -107,12 +107,13 @@ class Matcher:
 
     def detect_start(self, image):
         if self.start_hash is None:
-            self.start_hash = hash_start(cv2.imread(self.data['start']))
+            world_start = cv2.imread(self.data['start'])
+            self.start_hash = hash_start(world_start)
         _hash = hash_start(image)
         value = np.sum(
             cv2.subtract(_hash, self.start_hash) +
             cv2.subtract(self.start_hash, _hash)
         )
-        if value < 1000:
+        if value < 2000:
             # value is usually like 400, but got to make sure it isn't zero so it's truthy
             return value or 1

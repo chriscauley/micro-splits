@@ -22,6 +22,7 @@ class Video(WaitKeyMixin):
         self.data = JsonCache(self.data_dir + 'data.json')
         self.file_path = file_path
         self.cap = cv2.VideoCapture(file_path)
+        self._next_item_check = 0
         self.data.update({
             'video_name': fname,
             'video_path': file_path,

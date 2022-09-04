@@ -15,26 +15,19 @@ from maptroid.icons import get_icons
 def check_current_frame(video, items):
     window = 20
     index = video._index
-    if index < video.data['start']:
-        # video hasn't started yet
-        return False
-
     if index < video._next_item_check:
         # last item was too recent
         return False
-
-    if index >= len(video.data['sums']):
-        # TODO sometimes sums is one index too short... why?
-        return False
     std_means = np.std(video.data['means'][index - window:index])
-    sums = video.data['sums'][index]
-    deltas = video.data['deltas'][index]
+    sums = video.data['sums'][index-1]
+    deltas = video.data['deltas'][index-1]
     if std_means < 0.1 and sums > 20 and deltas < 20:
         return index - window
 
 
 class ItemDetector:
     def __init__(self, video):
+        self.add_items = False # TODO
         self.video = video
         self.items = []
         self.item_frames = []
@@ -48,23 +41,23 @@ class ItemDetector:
         if item_index:
             game = self.video.get_game_content()
             matched_item = self.video.matcher.match_item(game)
-            if not matched_item and add_items:
+            if not matched_item and self.add_items:
                 matched_item = self.video.matcher.add_item(game)
             if matched_item:
                 self.items.append([item_index, matched_item])
                 self.item_frames.append(self.video.get_game_content())
                 self.video._next_item_check = index + 200
             else:
-                self.falsee_items.append(index)
-                self.falsee_frames.append(self.video.get_game_content())
+                self.false_items.append(index)
+                self.false_frames.append(self.video.get_game_content())
                 self.video._next_item_check = index + 10
 
     def finalize(self):
-        self.video.data['items'] = items
-        self.save_false_items()
-        self.save_item_frames()
+        self.video.data['items'] = self.items
+        self._save_false_items()
+        self._save_item_frames()
 
-    def save_false_items(self):
+    def _save_false_items(self):
         video_name = self.video.data.get('video_name')
         root = Path(f'.data/{video_name}/false_items')
         root.mkdir(exist_ok=True, parents=True)
@@ -81,9 +74,9 @@ class ItemDetector:
             paths.append(path)
             cv2.imwrite(path, frame)
         cv2.imwrite(str(root / '__all__.png'), urcv.stack.many(self.false_frames))
-        self.video.data['false_frames'] = self.false_frames
+        self.video.data['false_frames'] = self.false_items
 
-    def save_item_frames():
+    def _save_item_frames(self):
         icons = {
             **get_icons('items', _cvt=cv2.COLOR_BGRA2BGR, scale=2),
             **get_icons('custom-items', _cvt=cv2.COLOR_BGRA2BGR, scale=2),
