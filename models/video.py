@@ -2,6 +2,7 @@ import cv2
 import functools
 import urcv
 
+from .item_detector import ItemDetector
 from .matcher import Matcher
 from .mixins import WaitKeyMixin, OutOfBoundsError
 from .data import JsonCache
@@ -32,6 +33,7 @@ class Video(WaitKeyMixin):
         self._cached_index = None
         self._index = -1 # foces next line to load frame
         self.get_frame(0)
+        self.detector = ItemDetector(self)
 
     @functools.cached_property
     def matcher(self):

@@ -1,14 +1,8 @@
-import _setup
 import cv2
 import numpy as np
 from pathlib import Path
-import sys
-import time
-import typer
 import urcv
 
-import args
-from models import Matcher, Video
 from maptroid.icons import get_icons
 
 
@@ -93,22 +87,3 @@ class ItemDetector:
             urcv.text.write(frame, f'{index} {item}')
             marked_frames.append(frame)
         cv2.imwrite(str(root / '__all__.png'), urcv.stack.many(marked_frames))
-
-def main(
-        video_path = args.video_path,
-        add_items: bool = args.add_items,
-):
-    video = Video(video_path)
-    video._next_item_check = 0
-
-    detector = ItemDetector(video)
-
-    video.each_frame(detector.check)
-    detector.finalize()
-
-    item_count = len(detector.items)
-    false_count = len(detector.false_frames)
-    print(f'Video has {item_count} items and {false_count} false positives')
-
-if __name__ == "__main__":
-    typer.run(main)

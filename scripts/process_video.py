@@ -9,8 +9,8 @@ import urcv
 
 import args
 from configure_video import configure_video
-import detect_items
-from models import Matcher, Video
+from models import Video
+
 
 def sumcells(img, size=16):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -20,6 +20,7 @@ def sumcells(img, size=16):
     W = int(img.shape[1] / size)
 
     return cv2.resize(img,(W,H)) > 5
+
 
 def process(game, last_game):
     if last_game is None:
@@ -34,6 +35,7 @@ def process(game, last_game):
     summed_delta = sumcells(delta)
     return summed_game, delta, summed_delta
 
+
 def process_video(video):
     video._last_item = 0
     video._last_game = None
@@ -41,12 +43,10 @@ def process_video(video):
     video.data['means'] = []
     video.data['deltas'] = []
 
-    matcher = Matcher(video.data['world'])
     cap = video.cap
     def each_func():
         hud = video.get_hud_content()
         game = video.get_game_content()
-        # video.matcher.detect_start(game)
         index = video._index
 
         summed_game, delta, summed_delta = process(game.copy(), video._last_game)
@@ -62,17 +62,22 @@ def process_video(video):
     video.detector.finalize()
     print('finalized')
 
+
 def main(video_path=args.video_path):
     video_name = video_path.split('/')[-1]
     video = Video(video_path)
-    video.detector = detect_items.ItemDetector(video)
 
     while 'start' not in video.data or 'world' not in video.data:
         print("Video not configured. Please specify (s)tart, game (b)ounds, and specify world.")
         configure_video(video_path)
         cv2.destroyAllWindows()
         video = Video(video_path) # rerfresh data
-        video.detector = detect_items.ItemDetector(video)
+
+    if not video.data.get('deltas') or True:
+        print('processing', video_name)
+        video = Video(video_path) # rerfresh data
+        process_video(video)
+
 
 if __name__ == "__main__":
     typer.run(main)
