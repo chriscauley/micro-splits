@@ -51,6 +51,8 @@ def process_video(video):
 
         summed_game, delta, summed_delta = process(game.copy(), video._last_game)
 
+        video.matcher.detect_start(video)
+
         video.data['means'].append(game.mean())
         video.data['sums'].append(np.sum(summed_game))
         video.data['deltas'].append(np.sum(summed_delta))

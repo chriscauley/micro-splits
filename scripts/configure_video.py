@@ -22,6 +22,7 @@ def watch_func(video):
     if video.data.get('game_bounds', video):
         show('raw', video._raw_image)
     show('hud', video.get_hud_content())
+    game = video.get_game_content()
     game_text = f'f:{video._index}  '
     if video.data.get('manual_items'):
         delta = get_delta(video._index, video.data['manual_items'])
@@ -30,8 +31,7 @@ def watch_func(video):
         delta = get_delta(video._index, video.data['touched_items'])
         game_text += f't:{delta}'
 
-    game = video.get_game_content()
-    if video.matcher.detect_start(game):
+    if video.matcher.detect_start(video):
         video.data['start'] = min(video.data.get('start', 1e6), video._index)
         game_text += f'start! {video.data["start"]}'
     show('game', game, text=game_text)
@@ -58,7 +58,8 @@ def pressed_func(video, pressed):
     elif pressed == 's':
         video.data['start'] = video._index
         if not 'start' in video.matcher.data:
-            video.matcher.save_start(video.get_game_content())
+            video.get_game_content()
+            video.matcher.save_start(video._raw_image)
             print('saved start for world ' + video.data['world'])
     elif pressed == 'e':
         video.data['end'] = video._index

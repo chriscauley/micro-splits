@@ -6,11 +6,6 @@ from maptroid.utils import dhash
 
 def hash_start(image):
     kernel = np.ones((3,3),np.uint8)
-
-    # Threshing a BGR image gives an image where all 3 chanels are either 0 or 255
-    _, thresh = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY)
-
-    # Strip out only the pure yellow channel
-    mask = cv2.inRange(thresh, (0,255,254), (0,255,255))
-    filtered = cv2.bitwise_and(thresh, thresh, mask=mask)
-    return cv2.resize(cv2.morphologyEx(filtered, cv2.MORPH_OPEN, kernel), (16, 16))
+    cropped = urcv.transform.crop(image, (0,20,74,10))
+    gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
+    return cropped

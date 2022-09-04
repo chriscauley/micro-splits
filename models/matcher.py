@@ -105,15 +105,15 @@ class Matcher:
         self.data['start'] = path
         cv2.imwrite(path, image)
 
-    def detect_start(self, image):
+    def detect_start(self, video):
+        video.get_game_content()
+        image = video._raw_image
+        if not 'start' in self.data:
+            return False
         if self.start_hash is None:
             world_start = cv2.imread(self.data['start'])
             self.start_hash = hash_start(world_start)
         _hash = hash_start(image)
-        value = np.sum(
-            cv2.subtract(_hash, self.start_hash) +
-            cv2.subtract(self.start_hash, _hash)
-        )
-        if value < 2000:
-            # value is usually like 400, but got to make sure it isn't zero so it's truthy
-            return value or 1
+        result = cv2.matchTemplate(_hash, self.start_hash, cv2.TM_CCOEFF_NORMED)
+        _, val, _, loc = cv2.minMaxLoc(result)
+        return val > 0.99
