@@ -65,7 +65,7 @@ def process_video(video):
     print('finalized')
 
 
-def main(video_path=args.video_path):
+def main(video_path=args.video_path, add_items:bool=args.add_items):
     video_name = video_path.split('/')[-1]
     video = Video(video_path)
 
@@ -77,7 +77,7 @@ def main(video_path=args.video_path):
 
     if not video.data.get('deltas') or True:
         print('processing', video_name)
-        video = Video(video_path) # rerfresh data
+        video.detector.add_items = add_items
         process_video(video)
 
 

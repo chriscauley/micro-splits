@@ -133,5 +133,7 @@
       17
     ]
   },
-  "ui": {}
+  "ui": {},
+  "coords": {},
+  "start": "templates/super-metroid/start.png"
 }

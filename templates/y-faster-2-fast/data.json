@@ -1,0 +1,121 @@
+{
+  "item": {
+    "missile": [
+      34,
+      78,
+      232,
+      39
+    ],
+    "energy-tank": [
+      82,
+      86,
+      133,
+      12
+    ],
+    "super-missile": [
+      35,
+      76,
+      230,
+      39
+    ],
+    "wave-beam": [
+      62,
+      83,
+      167,
+      16
+    ],
+    "space-jump": [
+      76,
+      85,
+      138,
+      14
+    ],
+    "spazer-beam": [
+      80,
+      83,
+      124,
+      17
+    ],
+    "power-bomb": [
+      29,
+      75,
+      241,
+      42
+    ],
+    "x-ray": [
+      31,
+      76,
+      240,
+      40
+    ],
+    "reserve-tank": [
+      91,
+      86,
+      121,
+      12
+    ],
+    "speed-booster": [
+      30,
+      76,
+      240,
+      42
+    ],
+    "grappling-beam": [
+      31,
+      77,
+      239,
+      41
+    ],
+    "plasma-beam": [
+      77,
+      85,
+      142,
+      13
+    ],
+    "varia-suit": [
+      74,
+      86,
+      141,
+      12
+    ],
+    "screw-attack": [
+      76,
+      84,
+      140,
+      16
+    ],
+    "__guardian-disarmed": [
+      33,
+      84,
+      230,
+      35
+    ],
+    "gravity-suit": [
+      61,
+      86,
+      168,
+      12
+    ],
+    "spring-ball": [
+      79,
+      85,
+      127,
+      13
+    ],
+    "hi-jump-boots": [
+      98,
+      85,
+      108,
+      13
+    ],
+    "ice-beam": [
+      79,
+      86,
+      126,
+      12
+    ]
+  },
+  "ui": {},
+  "coords": {},
+  "start": "templates/y-faster-2-fast/start.png"
+}

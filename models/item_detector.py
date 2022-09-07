@@ -5,23 +5,18 @@ import urcv
 
 from maptroid.icons import get_icons
 
+WAIT_TIMES = {
+    # wait time must be longer for vitality since player can go through doors
+    'vidality': 300,
+    # y-faster-2-fast has 1/3 second item prompts
+    'y-faster-2-fast': 30,
+}
 
-def check_current_frame(video, items):
-    window = 20
-    index = video._index
-    if index < video._next_item_check:
-        # last item was too recent
-        return False
-    std_means = np.std(video.data['means'][index - window:index])
-    sums = video.data['sums'][index-1]
-    deltas = video.data['deltas'][index-1]
-    if std_means < 0.1 and sums > 20 and deltas < 20:
-        return index - window
-
+Y_DUPES = ['wave-beam', 'space-jump', 'spazer-beam', 'x-ray', 'speed-booster', 'grappling-beam', 'plasma-beam', 'varia-suit', 'screw-attack', 'gravity-suit', 'spring-ball', 'hi-jump-boots', 'ice-beam']
 
 class ItemDetector:
     def __init__(self, video):
-        self.add_items = False # TODO
+        self.add_items = False
         self.video = video
         self.items = []
         self.item_frames = []
@@ -31,20 +26,59 @@ class ItemDetector:
     def check(self):
         index = self.video._index
 
-        item_index = check_current_frame(self.video, self.items)
-        if item_index:
-            game = self.video.get_game_content()
-            matched_item = self.video.matcher.match_item(game)
-            if not matched_item and self.add_items:
-                matched_item = self.video.matcher.add_item(game)
-            if matched_item:
+        if index < self.video.data.get('start', 0):
+            return
+
+        item_index = self._check_current_frame()
+        if item_index is None:
+            return
+        game = self.video.get_game_content()
+        matched_item = self.video.matcher.match_item(game)
+        if not matched_item and self.add_items:
+            matched_item = self.video.matcher.add_item(game)
+        if matched_item:
+            print(item_index, matched_item)
+            if not matched_item.startswith('__'):
+                # '__' are used for zone changes in vitality
                 self.items.append([item_index, matched_item])
-                self.item_frames.append(self.video.get_game_content())
-                self.video._next_item_check = index + 200
-            else:
-                self.false_items.append(index)
-                self.false_frames.append(self.video.get_game_content())
-                self.video._next_item_check = index + 10
+                self.item_frames.append(self.video._frame_image)
+            wait = WAIT_TIMES.get(self.video.data['world'], 200)
+            if self.video.data['world'].startswith('y-faster') and matched_item in Y_DUPES:
+                print(matched_item, 'is in dupes')
+                # some items are on screen longer in y-faster
+                wait = 180
+            self.video._next_item_check = index + wait
+        else:
+            self.false_items.append(index)
+            self.false_frames.append(self.video._frame_image)
+            self.video._next_item_check = index + 10
+
+    def _check_current_frame(self):
+        video = self.video
+
+        window = 20
+        if self.video.data['world'].startswith('y-faster'):
+            window = 6
+        index = video._index
+        if index < video._next_item_check:
+            # last item was too recent
+            return None
+
+        if video.data['world'] == 'vitality':
+            # vitality is a much simpler case since it only displays the item in the top left corner
+            item_box = video.matcher.get_item_box()
+            _ret, threshed = cv2.threshold(item_box, 92, 255, cv2.THRESH_BINARY)
+            np_sum = np.sum(threshed) / 255
+            _, _, w, h = video.matcher.data['coords']['item_bounds']
+            if np_sum > 100 and np_sum < w * h:
+                return index
+            return None
+
+        std_means = np.std(video.data['means'][index - window:index])
+        sums = video.data['sums'][index-1]
+        deltas = video.data['deltas'][index-1]
+        if std_means < 0.1 and sums > 20 and deltas < 20:
+            return index - window
 
     def finalize(self):
         self.video.data['items'] = self.items
@@ -62,12 +96,17 @@ class ItemDetector:
         if not self.false_frames:
             return
 
-        paths = []
+        stack = []
         for index, frame in zip(self.false_items, self.false_frames):
-            path = str(root / f'{index}.png')
-            paths.append(path)
-            cv2.imwrite(path, frame)
-        cv2.imwrite(str(root / '__all__.png'), urcv.stack.many(self.false_frames))
+            frame = frame.copy()
+            urcv.text.write(frame, index, pos=(0, 40))
+            stack.append(frame)
+        chuncks = int(np.ceil(len(stack) / 25))
+        for i in range(chuncks):
+            start = i * 25
+            end = min((i + 1) * 25, len(stack))
+            print(start, end)
+            cv2.imwrite(str(root / f'{start}-{end}.png'), urcv.stack.many(stack[start:end]))
         self.video.data['false_frames'] = self.false_items
 
     def _save_item_frames(self):
@@ -84,6 +123,6 @@ class ItemDetector:
             cv2.imwrite(str(root / f'{index}.png'), frame)
             icon = icons.get(item, icons['beam-combo'])
             urcv.draw.paste(frame, icon, 50, 80)
-            urcv.text.write(frame, f'{index} {item}')
+            urcv.text.write(frame, f'{index} {item}', pos=(0, 40))
             marked_frames.append(frame)
         cv2.imwrite(str(root / '__all__.png'), urcv.stack.many(marked_frames))

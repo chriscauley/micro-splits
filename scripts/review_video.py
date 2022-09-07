@@ -53,6 +53,7 @@ def watch_func(video):
         urcv.text.write(last_game, f'{max_index-index}: end')
 
     stacked = np.vstack([game_copy, last_game, delta])
+    cv2.imshow('frame', urcv.transform.scale(video._frame_image, 2))
     cv2.imshow('game,last_game,delta', urcv.transform.scale(stacked, 1.5))
 
     summed_delta = np.multiply(255, summed_delta.astype(np.uint8))
@@ -63,9 +64,15 @@ def watch_func(video):
     datasets = [d[-PLOT_LEN:] for d in datasets]
     show_plot(datasets, x_max=index, labels=["means", "sums", "deltas"])
 
+
+def pressed_func(video, key):
+    if key == 'i':
+        video.matcher.add_item(video.get_game_content())
+
+
 def main(video_path=typer.Argument(None, help="path to mkv file to analyze.")):
     video = Video(video_path)
-    video.watch(watch_func)
+    video.watch(watch_func, pressed_func)
 
 if __name__ == "__main__":
     typer.run(main)

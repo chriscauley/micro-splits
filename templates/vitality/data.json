@@ -1,0 +1,164 @@
+{
+  "item": {
+    "morph-ball": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "missile": [
+      0,
+      0,
+      117,
+      14
+    ],
+    "bomb": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "energy-tank": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "charge-beam": [
+      0,
+      0,
+      110,
+      14
+    ],
+    "super-missile": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "__akhlys": [
+      0,
+      0,
+      73,
+      14
+    ],
+    "power-bomb": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "varia-suit": [
+      0,
+      7,
+      95,
+      7
+    ],
+    "__tchornobog": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "hi-jump-boots": [
+      0,
+      0,
+      92,
+      14
+    ],
+    "__pendulu-moda": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "speed-booster": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "spazer-beam": [
+      0,
+      0,
+      111,
+      14
+    ],
+    "__tack-lacora": [
+      0,
+      0,
+      108,
+      14
+    ],
+    "grappling-beam": [
+      0,
+      1,
+      119,
+      13
+    ],
+    "wave-beam": [
+      0,
+      0,
+      89,
+      14
+    ],
+    "spring-ball": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "ice-beam": [
+      0,
+      0,
+      92,
+      14
+    ],
+    "__andavald": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "gravity-suit": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "space-jump": [
+      0,
+      0,
+      94,
+      14
+    ],
+    "screw-attack": [
+      0,
+      0,
+      117,
+      14
+    ],
+    "plasma-beam": [
+      0,
+      0,
+      121,
+      14
+    ],
+    "__elseq": [
+      0,
+      0,
+      121,
+      14
+    ]
+  },
+  "ui": {},
+  "coords": {
+    "item_bounds": [
+      9,
+      0,
+      121,
+      14
+    ]
+  },
+  "start": "templates/vitality/start.png"
+}

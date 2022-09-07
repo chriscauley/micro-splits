@@ -37,7 +37,7 @@ class Video(WaitKeyMixin):
 
     @functools.cached_property
     def matcher(self):
-        return Matcher(self.data['world'])
+        return Matcher(self.data['world'], self)
 
     def get_frame(self, target_index=None, safe=False):
         if target_index == None:

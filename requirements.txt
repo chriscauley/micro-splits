@@ -1,7 +1,9 @@
+beautifulsoup4==4.11.1
 Django==4.1
 django-unrest==0.1.9
 imagehash==4.2.1
 matplotlib==3.5.2
+mss==6.1.0
 numpy==1.23.1
 opencv-python==4.6.0.66
 typer==0.6.1

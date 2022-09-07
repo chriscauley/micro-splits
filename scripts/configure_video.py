@@ -1,10 +1,11 @@
 import _setup
 import cv2
+import numpy as np
 import sys
 import typer
 import urcv
 
-from models import Video, Matcher
+from models import Video
 
 def show(name, image, scale=2, text=None):
     canvas = urcv.transform.scale(image, scale)
@@ -34,6 +35,14 @@ def watch_func(video):
     if video.matcher.detect_start(video):
         video.data['start'] = min(video.data.get('start', 1e6), video._index)
         game_text += f'start! {video.data["start"]}'
+
+    # This was used to check vitality item box
+    # if video.data.get('world') == 'vitality':
+    #     item_box = video.matcher.get_item_box(video)
+    #     cv2.imshow('item_box', urcv.transform.scale(item_box, 5))
+    #     cv2.imshow('thresh_item_box', urcv.transform.scale(item_box, 5))
+    #     urcv.text.write(game, np.sum(item_box)/255, pos='bottom')
+
     show('game', game, text=game_text)
 
 def mark_index(video, list_name):
@@ -75,7 +84,6 @@ def configure_video(video_path):
     print('configuring', video_path)
     if 'world' not in video.data:
         video.data['world'] = input('enter world slug:')
-    video.matcher = Matcher(video.data['world'])
     video.watch(watch_func, pressed_func)
 
 if __name__ == "__main__":

@@ -13,8 +13,9 @@ class EmptyTextError(Exception):
 
 
 class Matcher:
-    def __init__(self, slug):
+    def __init__(self, slug, video):
         self.slug = slug
+        self.video = video
         self._dir = Path(f'templates/{slug}')
         self._dir.mkdir(exist_ok=True)
 
@@ -35,6 +36,8 @@ class Matcher:
             for name in self.data[type_].keys():
                 self.load_cache(type_, name)
         self._root = None
+        self._item_box_index = None
+        self._item_box = None
 
     def load_cache(self, type_, name):
         key = f'{type_}__{name}'
@@ -43,12 +46,16 @@ class Matcher:
 
     def prep_image(self, image):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        _ret, image = cv2.threshold(image, 10, 255, cv2.THRESH_BINARY)
+        threshold = 92 if self.slug == 'vitality' else 10
+        _ret, image = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
         image = cv2.blur(image, (3, 3))
         return image
 
     def match_item(self, image):
-        gray = self.prep_image(image)
+        if self.slug == 'vitality':
+            gray = self.prep_image(self.get_item_box())
+        else:
+            gray = self.prep_image(image)
         max_val = 0
         max_loc = None
         max_item = None
@@ -74,12 +81,21 @@ class Matcher:
         return value
 
     def add_item(self, image):
-        bounds = urcv.get_scaled_roi(image, 4, "Highlight item")
-        _, _, w, h = bounds
-        if w * h == 0:
-            return
+        if self.slug == 'vitality':
+            image = self.get_item_box()
+            cropped, bounds = urcv.transform.autocrop_zeros(image, return_bounds=True)
+            cv2.imshow('image', image)
+            cv2.imshow('cropped (c to confirm, other to cancel)', cropped)
+            if urcv.wait_key() != 'c':
+                return
+        else:
+            bounds = urcv.get_scaled_roi(image, 4, "Highlight item")
+            _, _, w, h = bounds
+            if w * h == 0:
+                return
+            cropped = urcv.transform.crop(image, bounds)
+
         item_name = self.prompt("Enter item name")
-        cropped = urcv.transform.crop(image, bounds)
         self.data['item'][item_name] = bounds
         cv2.imwrite(str(self._originals / f'item__{item_name}.png'), image)
         cv2.imwrite(str(self._cropped / f'item__{item_name}.png'), cropped)
@@ -114,6 +130,30 @@ class Matcher:
             world_start = cv2.imread(self.data['start'])
             self.start_hash = hash_start(world_start)
         _hash = hash_start(image)
-        result = cv2.matchTemplate(_hash, self.start_hash, cv2.TM_CCOEFF_NORMED)
-        _, val, _, loc = cv2.minMaxLoc(result)
-        return val > 0.99
+
+        return _hash - self.start_hash < 5
+
+    def get_item_box(self):
+        # currently used for vitality
+        index = self.video._index
+        if self._item_box_index != index:
+            item_bounds = self.video.matcher.data['coords']['item_bounds']
+            item_box = urcv.transform.crop(self.video.get_hud_content(), item_bounds)
+            self._item_box = item_box
+            self._item_box_index = index
+        return self._item_box
+
+    def get_max_item_bounds(self):
+        # look at all the item coords and return coords that would contain the all
+        # I believe this is just the missile box since it's the biggest
+        x1s = []
+        y1s = []
+        x2s = []
+        y2s = []
+        for x1, y1, w, h in self.data['item'].values():
+            x1s.append(x1)
+            y1s.append(y1)
+            x2s.append(w)
+            y2s.append(h)
+
+        return [min(x1s), min(y1s), max(x2s), max(y2s)]

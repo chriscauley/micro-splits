@@ -49,3 +49,9 @@ def show_plot(datasets, title='plot', cap=0, x_max=None, labels=None):
     w, h = fig.canvas.get_width_height()
     plt.clf()
     cv2.imshow(title, urcv.transform.scale(data.reshape((int(h), int(w), -1)), 2))
+
+
+def extract_cymak(image, upper, lower):
+    _, thresh = cv2.threshold(image.copy(), 128, 255, cv2.THRESH_BINARY)
+    mask = cv2.inRange(thresh, lower, upper)
+    return cv2.bitwise_and(thresh, thresh, mask=mask)
