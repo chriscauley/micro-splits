@@ -1,5 +1,6 @@
 import cv2
 import functools
+import numpy as np
 import urcv
 
 from .item_detector import ItemDetector
@@ -11,6 +12,13 @@ GAME_WIDTH = 300
 GAME_HEIGHT = 224
 GAME_SHAPE = (GAME_HEIGHT, GAME_WIDTH)
 HUD_SPLIT = 31
+
+# previously tried to sharpen in prep_image... might revisit later
+sharpen_kernel = np.array([
+    [0, -1, 0],
+    [-1, 5,-1],
+    [0, -1, 0]
+])
 
 class Video(WaitKeyMixin):
     """
@@ -58,6 +66,7 @@ class Video(WaitKeyMixin):
 
             ret, self._frame_image = self.cap.read()
             self._raw_image = self._frame_image
+
             if self._frame_image is None:
                 now = self._index
                 end = self.get_max_index()
@@ -68,6 +77,7 @@ class Video(WaitKeyMixin):
                 raise OutOfBoundsError(f"The video has ended on frame {now}/{end}")
 
             # game bounds remove the stream content, etc
+            self._raw_image = self._frame_image = self.prep_image(self._raw_image)
             game_bounds = self.data.get('game_bounds')
             if game_bounds:
                 self._frame_image = urcv.transform.crop(self._frame_image, game_bounds)
@@ -82,6 +92,9 @@ class Video(WaitKeyMixin):
             if not ret:
                 raise NotImplementedError("Video is not loaded")
         return self._frame_image
+
+    def prep_image(self, image):
+        return urcv.transform.threshold(image, 20, 255)
 
     def get_hud_content(self):
         return self.get_frame()[:HUD_SPLIT]

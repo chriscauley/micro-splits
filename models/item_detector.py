@@ -10,6 +10,7 @@ WAIT_TIMES = {
     'vidality': 300,
     # y-faster-2-fast has 1/3 second item prompts
     'y-faster-2-fast': 30,
+    'y-faster': 30,
 }
 
 Y_DUPES = ['wave-beam', 'space-jump', 'spazer-beam', 'x-ray', 'speed-booster', 'grappling-beam', 'plasma-beam', 'varia-suit', 'screw-attack', 'gravity-suit', 'spring-ball', 'hi-jump-boots', 'ice-beam']
@@ -29,21 +30,23 @@ class ItemDetector:
         if index < self.video.data.get('start', 0):
             return
 
+        if index > self.video.data.get('end', 1e15):
+            return
+
         item_index = self._check_current_frame()
         if item_index is None:
             return
         game = self.video.get_game_content()
-        matched_item = self.video.matcher.match_item(game)
-        if not matched_item and self.add_items:
-            matched_item = self.video.matcher.add_item(game)
+        matched_item = self.video.matcher.match_item(game.copy())
+        if not matched_item and self.can_add_item(item_index):
+            matched_item = self.video.matcher.add_item(game.copy())
         if matched_item:
-            print(item_index, matched_item)
             if not matched_item.startswith('__'):
                 # '__' are used for zone changes in vitality
                 self.items.append([item_index, matched_item])
                 self.item_frames.append(self.video._frame_image)
             wait = WAIT_TIMES.get(self.video.data['world'], 200)
-            if self.video.data['world'].startswith('y-faster') and matched_item in Y_DUPES:
+            if self.video.data['world'].startswith('y-faster-2') and matched_item in Y_DUPES:
                 print(matched_item, 'is in dupes')
                 # some items are on screen longer in y-faster
                 wait = 180
@@ -53,16 +56,25 @@ class ItemDetector:
             self.false_frames.append(self.video._frame_image)
             self.video._next_item_check = index + 10
 
+    def can_add_item(self, index):
+        if isinstance(self.add_items, int):
+            return abs(self.add_items -index) < 100
+        return self.add_items
+
     def _check_current_frame(self):
         video = self.video
-
         window = 20
         if self.video.data['world'].startswith('y-faster'):
             window = 6
         index = video._index
+
         if index < video._next_item_check:
             # last item was too recent
             return None
+
+        std_means = np.std(video.data['means'][index - window:index])
+        sums = video.data['sums'][index-1]
+        deltas = video.data['deltas'][index-1]
 
         if video.data['world'] == 'vitality':
             # vitality is a much simpler case since it only displays the item in the top left corner
@@ -74,10 +86,7 @@ class ItemDetector:
                 return index
             return None
 
-        std_means = np.std(video.data['means'][index - window:index])
-        sums = video.data['sums'][index-1]
-        deltas = video.data['deltas'][index-1]
-        if std_means < 0.1 and sums > 20 and deltas < 20:
+        if std_means < 0.15 and sums > 20 and deltas < 20:
             return index - window
 
     def finalize(self):
@@ -125,4 +134,6 @@ class ItemDetector:
             urcv.draw.paste(frame, icon, 50, 80)
             urcv.text.write(frame, f'{index} {item}', pos=(0, 40))
             marked_frames.append(frame)
-        cv2.imwrite(str(root / '__all__.png'), urcv.stack.many(marked_frames))
+        stacked = urcv.stack.many(marked_frames)
+        cv2.imwrite(str(root / '__all__.png'), stacked)
+        cv2.imwrite(str(root / '__processed__.png'), self.video.matcher.prep_image(stacked))

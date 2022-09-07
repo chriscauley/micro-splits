@@ -10,7 +10,7 @@ from models import Video
 from models.inventory import get_video_inventory_image
 from utils import show_plot
 
-PLOT_LEN = 1000
+PLOT_LEN = 50
 
 
 def get_next_item(video):

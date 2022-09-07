@@ -65,7 +65,7 @@ def process_video(video):
     print('finalized')
 
 
-def main(video_path=args.video_path, add_items:bool=args.add_items):
+def main(video_path=args.video_path, add_items:bool=args.add_items, add_index:int=args.add_index):
     video_name = video_path.split('/')[-1]
     video = Video(video_path)
 
@@ -77,8 +77,13 @@ def main(video_path=args.video_path, add_items:bool=args.add_items):
 
     if not video.data.get('deltas') or True:
         print('processing', video_name)
+        print('start items', len(video.data.get('items', [])))
         video.detector.add_items = add_items
+        if add_index:
+            video.detector.add_items = add_index
+        print('add items is', video.detector.add_items)
         process_video(video)
+        print('end items', len(video.data.get('items', [])))
 
 
 if __name__ == "__main__":

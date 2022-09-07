@@ -11,6 +11,9 @@ from game.ypx import hash_start
 class EmptyTextError(Exception):
     pass
 
+# Taken from y-faster's missiles
+ITEM_BOUNDS = [18, 53, 265, 79]
+
 
 class Matcher:
     def __init__(self, slug, video):
@@ -45,17 +48,18 @@ class Matcher:
         self.cache[key] = self.prep_image(img)
 
     def prep_image(self, image):
+        if self.slug == 'vitality':
+            gray = self.get_item_box()
+        else:
+            image = urcv.transform.crop(image, ITEM_BOUNDS)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        threshold = 92 if self.slug == 'vitality' else 10
+        threshold = 92 if self.slug == 'vitality' else 20
         _ret, image = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
         image = cv2.blur(image, (3, 3))
         return image
 
     def match_item(self, image):
-        if self.slug == 'vitality':
-            gray = self.prep_image(self.get_item_box())
-        else:
-            gray = self.prep_image(image)
+        gray = self.prep_image(image)
         max_val = 0
         max_loc = None
         max_item = None

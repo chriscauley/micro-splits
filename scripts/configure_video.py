@@ -64,6 +64,8 @@ def pressed_func(video, pressed):
             video._raw_image,
             name='Select crop of game area',
         )
+    elif pressed == 'c':
+        print(urcv.input.get_exact_roi(video._frame_image, name='Print these coords')),
     elif pressed == 's':
         video.data['start'] = video._index
         if not 'start' in video.matcher.data:
