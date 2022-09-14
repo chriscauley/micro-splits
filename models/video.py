@@ -36,6 +36,8 @@ class Video(WaitKeyMixin):
             'video_path': file_path,
             'fps': self.cap.get(cv2.CAP_PROP_FPS),
         })
+        if not 'manual_items' in self.data:
+            self.data['manual_items'] = {}
         self.data._save()
         self._cached_index = None
         self._index = -1 # foces next line to load frame

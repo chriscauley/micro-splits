@@ -159,6 +159,10 @@ class TemplateMatcher:
         return cv2.blur(cropped, (3, 3))
 
     def get_matched_item(self, image):
+        override = self.video.data['manual_items'].get(str(self.video._index))
+        if override:
+            print('using override item', self.video._index, override)
+            return override
         gray = self.prep_image_for_match(image)
         max_val = 0
         max_loc = None
@@ -174,12 +178,12 @@ class TemplateMatcher:
                 max_val = val
                 max_loc = loc
                 max_item = item_name
-        if close_calls:
-            print('had close calls, went with:', max_item, max_val)
-            print(close_calls)
+        # if close_calls:
+        #     print('had close calls, went with:', max_item, max_val)
+        #     print(close_calls)
         if max_val > 0.9:
             return max_item
-        print('no luck, closest was', max_val, max_item)
+        # print('no luck, closest was', max_val, max_item)
         return None
 
     def add_item(self, image, item_name=None):
@@ -196,6 +200,14 @@ class TemplateMatcher:
             cropped = urcv.transform.crop(image, bounds)
 
         item_name = item_name or self.prompt("Enter item name")
+        if item_name.startswith("!!"):
+            # manual item, do not create template
+            # used when item doesn't match generic template
+            item_name = item_name.strip("!")
+            self.video.data['manual_items'][str(self.video._index)] = item_name
+            self.video.data._save()
+            print('added manual item', self.video._index, item_name)
+            return item_name
         self.data['item'][item_name] = bounds
         cv2.imwrite(str(self._originals / f'item__{item_name}.png'), image)
         cv2.imwrite(str(self._cropped / f'item__{item_name}.png'), cropped)
