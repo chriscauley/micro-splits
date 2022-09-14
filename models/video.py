@@ -3,10 +3,9 @@ import functools
 import numpy as np
 import urcv
 
-from .item_detector import ItemDetector
-from .matcher import Matcher
 from .mixins import WaitKeyMixin, OutOfBoundsError
 from .data import JsonCache
+from .template_matcher import TemplateMatcher
 
 GAME_WIDTH = 300
 GAME_HEIGHT = 224
@@ -41,11 +40,8 @@ class Video(WaitKeyMixin):
         self._cached_index = None
         self._index = -1 # foces next line to load frame
         self.get_frame(0)
-        self.detector = ItemDetector(self)
+        self.template_matcher = TemplateMatcher(self)
 
-    @functools.cached_property
-    def matcher(self):
-        return Matcher(self.data['world'], self)
 
     def get_frame(self, target_index=None, safe=False):
         if target_index == None:

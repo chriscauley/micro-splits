@@ -49,19 +49,18 @@ def process_video(video):
         game = video.get_game_content()
         index = video._index
 
-        summed_game, delta, summed_delta = process(game.copy(), video._last_game)
+        # summed_game, delta, summed_delta = process(game.copy(), video._last_game)
 
-        video.matcher.detect_start(video)
+        # video.matcher.detect_start(video)
 
-        video.data['means'].append(game.mean())
-        video.data['sums'].append(np.sum(summed_game))
-        video.data['deltas'].append(np.sum(summed_delta))
-        video.detector.check()
-        video._last_game = game
+        # video.data['means'].append(game.mean())
+        # video.data['sums'].append(np.sum(summed_game))
+        # video.data['deltas'].append(np.sum(summed_delta))
+        video.template_matcher.check_item()
 
     video.each_frame(each_func)
     print('done')
-    video.detector.finalize()
+    video.template_matcher.finalize()
     print('finalized')
 
 
@@ -78,10 +77,8 @@ def main(video_path=args.video_path, add_items:bool=args.add_items, add_index:in
     if not video.data.get('deltas') or True:
         print('processing', video_name)
         print('start items', len(video.data.get('items', [])))
-        video.detector.add_items = add_items
-        if add_index:
-            video.detector.add_items = add_index
-        print('add items is', video.detector.add_items)
+        video.template_matcher._add_items = add_items or add_index
+        print('add items is', video.template_matcher._add_items)
         process_video(video)
         print('end items', len(video.data.get('items', [])))
 

@@ -20,10 +20,11 @@ def get_delta(index, values):
     return deltas[abs_deltas.index(min_)]
 
 def watch_func(video):
-    if video.data.get('game_bounds', video):
-        show('raw', video._raw_image)
     show('hud', video.get_hud_content())
     game = video.get_game_content()
+    if video.data.get('game_bounds', video):
+        show('raw', video._raw_image)
+
     game_text = f'f:{video._index}  '
     if video.data.get('manual_items'):
         delta = get_delta(video._index, video.data['manual_items'])
@@ -31,10 +32,6 @@ def watch_func(video):
     if video.data.get('touched_items'):
         delta = get_delta(video._index, video.data['touched_items'])
         game_text += f't:{delta}'
-
-    if video.matcher.detect_start(video):
-        video.data['start'] = min(video.data.get('start', 1e6), video._index)
-        game_text += f'start! {video.data["start"]}'
 
     # This was used to check vitality item box
     # if video.data.get('world') == 'vitality':
@@ -68,10 +65,10 @@ def pressed_func(video, pressed):
         print(urcv.input.get_exact_roi(video._frame_image, name='Print these coords')),
     elif pressed == 's':
         video.data['start'] = video._index
-        if not 'start' in video.matcher.data:
-            video.get_game_content()
-            video.matcher.save_start(video._raw_image)
-            print('saved start for world ' + video.data['world'])
+        # if not 'start' in video.matcher.data:
+        #     video.get_game_content()
+        #     video.matcher.save_start(video._raw_image)
+        #     print('saved start for world ' + video.data['world'])
     elif pressed == 'e':
         video.data['end'] = video._index
     elif pressed == 'i':

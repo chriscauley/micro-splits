@@ -15,9 +15,9 @@ def watch_func(video):
     # _, thresh = cv2.threshold(gray, 90, 255, cv2.THRESH_BINARY)
     # masked = cv2.bitwise_and(game, game, mask=thresh)
 
-    _, thresh = cv2.threshold(game, 100, 255, cv2.THRESH_BINARY)
+    # _, thresh = cv2.threshold(game, 100, 255, cv2.THRESH_BINARY)
     # get the full spectrum
-    hsv = cv2.cvtColor(thresh, cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(game, cv2.COLOR_BGR2HSV)
     images, ranges = urcv.hsv.scan_hue(hsv, 36, saturation=[0, 255], value=[0,255])
     spectrum = urcv.stack.many(images, border=[255, 0, 255], text=[str(r) for r in ranges])
     spectrum = cv2.cvtColor(spectrum, cv2.COLOR_HSV2BGR)
